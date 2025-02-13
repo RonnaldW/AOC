@@ -149,11 +149,11 @@ soma dw ?
 ;;Aproveitando algumas partes e macros que tinham na pratica 2 e 3 do professor
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; these functions are copied from emu8086.inc ;;;
+;;; Essas funções são copiadas de emu8086.inc. ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; this macro prints a char in AL and advances
-; the current cursor position:
+; esta macro imprime um caractere em AL e avança  
+; a posição atual do cursor:
 PUTC    MACRO   char
         PUSH    AX
         MOV     AL, char
@@ -162,8 +162,8 @@ PUTC    MACRO   char
         POP     AX
 ENDM
 
-; gets the multi-digit SIGNED number from the keyboard,
-; and stores the result in CX register:
+; obtém o número SIGNED de vários dígitos do teclado,  
+; e armazena o resultado no registrador CX:
 SCAN_NUM        PROC    NEAR
         PUSH    DX
         PUSH    AX
@@ -171,43 +171,43 @@ SCAN_NUM        PROC    NEAR
         
         MOV     CX, 0
 
-        ; reset flag:
+        ; redefinir flag:
         MOV     CS:make_minus, 0
 
 next_digit:
 
-        ; get char from keyboard
-        ; into AL:
+        ; obtém um caractere do teclado  
+        ; e armazena em AL:
         MOV     AH, 00h
         INT     16h
-        ; and print it:
+        ; e imprime-o:
         MOV     AH, 0Eh
         INT     10h
 
-        ; check for MINUS:
+        ; verifica o sinal de MENOS:
         CMP     AL, '-'
         JE      set_minus
 
-        ; check for ENTER key:
+        ; verifica a tecla ENTER:
         CMP     AL, 0Dh  ; carriage return?
         JNE     not_cr
         JMP     stop_input
 not_cr:
 
 
-        CMP     AL, 8                   ; 'BACKSPACE' pressed?
+        CMP     AL, 8                   ; 'BACKSPACE' pressionado?
         JNE     backspace_checked
-        MOV     DX, 0                   ; remove last digit by
-        MOV     AX, CX                  ; division:
-        DIV     CS:ten                  ; AX = DX:AX / 10 (DX-rem).
+        MOV     DX, 0                   ; remove o último dígito por
+        MOV     AX, CX                  ; divisão:
+        DIV     CS:ten                  ; AX = DX:AX / 10 (DX-resto).
         MOV     CX, AX
-        PUTC    ' '                     ; clear position.
-        PUTC    8                       ; backspace again.
+        PUTC    ' '                     ; limpar posição.
+        PUTC    8                       ; backspace novamente.
         JMP     next_digit
 backspace_checked:
 
 
-        ; allow only digits:
+        ; permitir apenas dígitos:
         CMP     AL, '0'
         JAE     ok_AE_0
         JMP     remove_not_digit
@@ -216,32 +216,32 @@ ok_AE_0:
         JBE     ok_digit
 remove_not_digit:       
         PUTC    8       ; backspace.
-        PUTC    ' '     ; clear last entered not digit.
-        PUTC    8       ; backspace again.        
-        JMP     next_digit ; wait for next input.       
+        PUTC    ' '     ; limpar o último caractere não dígito inserido.
+        PUTC    8       ; backspace novamente.     
+        JMP     next_digit ; aguarde a próxima entrada.      
 ok_digit:
 
 
-        ; multiply CX by 10 (first time the result is zero)
+        ; multiplica CX por 10 (na primeira vez, o resultado é zero)
         PUSH    AX
         MOV     AX, CX
         MUL     CS:ten                  ; DX:AX = AX*10
         MOV     CX, AX
         POP     AX
 
-        ; check if the number is too big
-        ; (result should be 16 bits)
+        ; verifica se o número é grande demais
+        ; (o resultado deve ser de 16 bits)
         CMP     DX, 0
         JNE     too_big
 
-        ; convert from ASCII code:
+        ; converte do código ASCII:
         SUB     AL, 30h
 
-        ; add AL to CX:
+        ; adiciona AL a CX:
         MOV     AH, 0
-        MOV     DX, CX      ; backup, in case the result will be too big.
+        MOV     DX, CX      ; backup, caso o resultado seja grande demais.
         ADD     CX, AX
-        JC      too_big2    ; jump if the number is too big.
+        JC      too_big2    ; pula se o número for grande demais.
 
         JMP     next_digit
 
@@ -250,20 +250,20 @@ set_minus:
         JMP     next_digit
 
 too_big2:
-        MOV     CX, DX      ; restore the backuped value before add.
-        MOV     DX, 0       ; DX was zero before backup!
+        MOV     CX, DX      ; restaura o valor salvo antes de adicionar.
+        MOV     DX, 0       ; DX estava zero antes do backup!
 too_big:
         MOV     AX, CX
-        DIV     CS:ten  ; reverse last DX:AX = AX*10, make AX = DX:AX / 10
+        DIV     CS:ten  ; inverte o último DX:AX = AX*10, faz AX = DX:AX / 10
         MOV     CX, AX
         PUTC    8       ; backspace.
-        PUTC    ' '     ; clear last entered digit.
-        PUTC    8       ; backspace again.        
-        JMP     next_digit ; wait for Enter/Backspace.
+        PUTC    ' '     ; limpar o último dígito inserido.
+        PUTC    8       ; backspace novamente.     
+        JMP     next_digit ; aguarde pelo Enter/Backspace.
         
         
 stop_input:
-        ; check flag:
+        ; verifica a flag:
         CMP     CS:make_minus, 0
         JE      not_minus
         NEG     CX
@@ -273,11 +273,11 @@ not_minus:
         POP     AX
         POP     DX
         RET
-make_minus      DB      ?       ; used as a flag.
+make_minus      DB      ?       ; usado como uma flag.
 SCAN_NUM        ENDP
 
-; this procedure prints number in AX,
-; used with PRINT_NUM_UNS to print signed numbers:
+; este procedimento imprime o número em AX,
+; usado com PRINT_NUM_UNS para imprimir números assinados:
 PRINT_NUM       PROC    NEAR
         PUSH    DX
         PUSH    AX
@@ -289,8 +289,8 @@ PRINT_NUM       PROC    NEAR
         JMP     printed
 
 not_zero:
-        ; the check SIGN of AX,
-        ; make absolute if it's negative:
+        ; verifica o SINAL de AX,
+        ; torna absoluto se for negativo:
         CMP     AX, 0
         JNS     positive
         NEG     AX
@@ -305,56 +305,56 @@ printed:
         RET
 PRINT_NUM       ENDP
 
-; this procedure prints out an unsigned
-; number in AX (not just a single digit)
-; allowed values are from 0 to 65535 (FFFF)
+; este procedimento imprime um número sem sinal
+; em AX (não apenas um único dígito)
+; os valores permitidos variam de 0 a 65535 (FFFF)
 PRINT_NUM_UNS   PROC    NEAR
         PUSH    AX
         PUSH    BX
         PUSH    CX
         PUSH    DX
 
-        ; flag to prevent printing zeros before number:
+        ; flag para evitar imprimir zeros antes do número:
         MOV     CX, 1
 
-        ; (result of "/ 10000" is always less or equal to 9).
+        ; (o resultado de "/ 10000" é sempre menor ou igual a 9).
         MOV     BX, 10000       ; 2710h - divider.
 
-        ; AX is zero?
+        ; AX é zero?
         CMP     AX, 0
         JZ      print_zero
 
 begin_print:
 
-        ; check divider (if zero go to end_print):
+        ; verifica o divisor (se for zero, vai para end_print):
         CMP     BX,0
         JZ      end_print
 
-        ; avoid printing zeros before number:
+        ; evitar imprimir zeros antes do número:
         CMP     CX, 0
         JE      calc
-        ; if AX<BX then result of DIV will be zero:
+        ; se AX<BX, o resultado da DIV será zero:
         CMP     AX, BX
         JB      skip
 calc:
-        MOV     CX, 0   ; set flag.
+        MOV     CX, 0   ; define a flag.
 
         MOV     DX, 0
-        DIV     BX      ; AX = DX:AX / BX   (DX=remainder).
+        DIV     BX      ; AX = DX:AX / BX   (DX=resto).
 
-        ; print last digit
-        ; AH is always ZERO, so it's ignored
-        ADD     AL, 30h    ; convert to ASCII code.
+        ; imprime o último dígito
+        ; AH é sempre ZERO, então é ignorado
+        ADD     AL, 30h    ; converte para código ASCII.
         PUTC    AL
 
-        MOV     AX, DX  ; get remainder from last div.
+        MOV     AX, DX  ; obtém o resto da última divisão.
 
 skip:
-        ; calculate BX=BX/10
+        ; calcula BX=BX/10
         PUSH    AX
         MOV     DX, 0
         MOV     AX, BX
-        DIV     CS:ten  ; AX = DX:AX / 10   (DX=remainder).
+        DIV     CS:ten  ; AX = DX:AX / 10   (DX=resto).
         MOV     BX, AX
         POP     AX
 
@@ -372,4 +372,5 @@ end_print:
         RET
 PRINT_NUM_UNS   ENDP
 
-ten             DW      10      ; used as multiplier/divider by SCAN_NUM & PRINT_NUM_UNS.
+ten             DW      10      ; usado como multiplicador/divisor por SCAN_NUM & PRINT_NUM_UNS.
+
